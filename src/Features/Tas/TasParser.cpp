@@ -242,6 +242,18 @@ static bool parseRngManip(const Line &l, TasScript &script) {
 	return true;
 }
 
+static bool parseHeaderInt(const Line &l, const char *name, int &value) {
+	if (l.tokens[0].tok != name) return false;
+
+	if (l.tokens.size() != 2 || l.tokens[1].type != TasToken::INTEGER || l.tokens[1].i < 0) {
+		throw TasParserException(Utils::ssprintf("invalid %s line; expected a non-negative integer", name));
+	}
+
+	value = l.tokens[1].i;
+
+	return true;
+}
+
 static TasScriptStartInfo parseStartInfo(const Line &l) {
 	TasScriptStartInfo info;
 
@@ -717,11 +729,19 @@ static void parseStream(TasScript &script, std::string name, std::istream &strea
 
 	size_t script_start = 2;
 	try {
-		if (lines.size() > 2 && parseRngManip(lines[2], script)) {
+		// optional header lines, in any order
+		while (lines.size() > script_start) {
+			auto &l = lines[script_start];
+			if (!parseRngManip(l, script) &&
+				!parseHeaderInt(l, "expect_load_ticks", script.header.expectLoadTicks) &&
+				!parseHeaderInt(l, "prerun_restarts", script.header.prerunRestarts) &&
+				!parseHeaderInt(l, "prerun_wait", script.header.prerunWait)) {
+				break;
+			}
 			script_start += 1;
 		}
 	} catch (TasParserException &e) {
-		throw TasParserException(Utils::ssprintf("[%s:%u] %s", name.c_str(), lines[2].num, e.msg.c_str()));
+		throw TasParserException(Utils::ssprintf("[%s:%u] %s", name.c_str(), lines[script_start].num, e.msg.c_str()));
 	}
 
 	script.framebulks = parseFramebulks(name.c_str(), lines.data() + script_start, lines.size() - script_start);  // skip version and start lines
@@ -835,6 +855,10 @@ std::string TasParser::SaveRawScriptToString(TasScript script) {
 		tasString << "cm " << script.header.startInfo.param << "\n";
 		break;
 	}
+
+	if (script.header.expectLoadTicks >= 0) tasString << "expect_load_ticks " << script.header.expectLoadTicks << "\n";
+	if (script.header.prerunRestarts >= 0) tasString << "prerun_restarts " << script.header.prerunRestarts << "\n";
+	if (script.header.prerunWait >= 0) tasString << "prerun_wait " << script.header.prerunWait << "\n";
 
 	std::string prevInput = "";
 

@@ -20,6 +20,9 @@ struct TasScriptHeader {
 	int version;
 	TasScriptStartInfo startInfo;
 	std::string rngManipFile;
+	int expectLoadTicks = -1;  // expected server tick at the session start after the load, with fast loads
+	int prerunRestarts = -1;   // restarts before the TAS starts
+	int prerunWait = -1;       // ticks to wait before each of those restarts
 };
 
 struct TasFramebulk {

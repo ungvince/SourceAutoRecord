@@ -52,6 +52,9 @@ Script written in P2TAS is stored as a text file with `.p2tas` extension. The fi
 version <versionnumber>
 start {next} {save/next/cm/now} <name>
 [rngmanip [path]]
+[expect_load_ticks <ticks>]
+[prerun_restarts <count>]
+[prerun_wait <ticks>]
 
 <tickbulk>
 [tickbulk]
@@ -62,7 +65,7 @@ The parser is case-sensitive. All keywords are lowercase.
 
 ### Header
 
-The file should begin with a set of properties, defined in this exact order:
+The file should begin with a set of properties. `version` and `start` come first, in this order; the optional properties follow them in any order:
 
 - `version <number>` - required, defines a version of the script file, which affects how the script is processed and executed. Currently, the newest version is 10. For more details, see [Version History](#version-history).
 - `start {next} {save/next/cm/now} <name>` - required, defines a starting point for the script file playback:
@@ -71,6 +74,13 @@ The file should begin with a set of properties, defined in this exact order:
   - `map` - starts from a map with a given `name`.
   - `cm` - same as `map`, but starts it in Challenge Mode.
 - `rngmanip <path>` - optional, defines a path to `.p2rng` file. For more details, see [RNG Manipulation](#rng-manipulation)
+- `expect_load_ticks <ticks>` - optional, the expected server tick at which the session starts after the script's load, with SAR's fast loads. With `sar_tas_determinism 1`, SAR prints a warning if the session starts at another tick.
+- `prerun_restarts <count>` - optional, with `sar_tas_determinism 1`: restarts the level (or loads the save again) this many times before the script starts. This gives another outcome from the same inputs, as restarting after launching the game would.
+- `prerun_wait <ticks>` - optional, with `sar_tas_determinism 1`: the ticks to wait before each of the `prerun_restarts`.
+
+The values of these three lines are non-negative integers. Without `sar_tas_determinism 1` they are ignored. SAR versions that do not know these lines fail to parse a script that has them. See [deterministic TAS playback](determinism.md).
+
+An optional line can be repeated; the last one counts.
 
 ### Tickbulks
 
