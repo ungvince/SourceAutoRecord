@@ -12,6 +12,7 @@
 //   loads, the reset load, then the script's prerun restarts.
 // - Reset load: the load during which SAR sets hidden state to its fresh-launch values. The session it starts is the
 //   reset session.
+// - Lockstep: advancing by exactly 1/host_framerate per frame instead of following the wall clock.
 namespace TasDeterminism {
 	// Portal 2 itself, on Linux. Otherwise every ON_INIT returns early, so nothing is scanned or hooked.
 	bool Supported();

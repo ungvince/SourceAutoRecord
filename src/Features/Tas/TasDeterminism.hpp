@@ -16,6 +16,8 @@ namespace TasDeterminism {
 
 	// engine and server hooks
 	void OnSignonState(int state);
+	float FrameTime(float dt);    // the frame time realtime advances by
+	void LockstepFrame();         // once per frame that advances realtime
 	float HostTime(float real);   // the host time CheckStuck sees
 	void UsercmdSeed(CUserCmd *cmd);
 }  // namespace TasDeterminism

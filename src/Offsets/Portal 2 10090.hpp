@@ -581,6 +581,7 @@ OFFSET_DEFAULT(interfaceMgrOff, 2, -1)
 
 // sar_tas_determinism (Features/Tas/Determinism), Linux only so far
 // Engine
+SIGSCAN_DEFAULT(NET_SetTime, "", "83 EC 1C F2 0F 10 44 24 20 66 0F 28 C8 F2 0F 5C 0D ? ? ? ? F2 0F 11 05 ? ? ? ?") // NET_RunFrame's first call, with Plat_FloatTime()
 SIGSCAN_DEFAULT(_Host_RunFrame_host_remainderSig, "", "F3 0F 10 05 ? ? ? ? F3 0F 58 05 ? ? ? ? F3 0F 11 05 ? ? ? ?") // _Host_RunFrame: host_remainder += host_frametime
 OFFSET_DEFAULT(_Host_RunFrame_host_remainderLoadOff, -1, 4)
 OFFSET_DEFAULT(_Host_RunFrame_host_remainderStoreOff, -1, 20)

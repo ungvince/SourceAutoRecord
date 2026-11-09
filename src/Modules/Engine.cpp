@@ -690,11 +690,14 @@ void (*Host_AccumulateTime)(float dt);
 static Hook Host_AccumulateTime_Hook(&Host_AccumulateTime_Detour);
 void Host_AccumulateTime_Detour(float dt) {
 	performanceHud->OnFrame(dt);
+	dt = TasDeterminism::FrameTime(dt);
 	if (!g_advancing || !session->isRunning) {
+		TasDeterminism::LockstepFrame();
 		Host_AccumulateTime_Hook.Disable();
 		Host_AccumulateTime(dt);
 		Host_AccumulateTime_Hook.Enable();
 	} else if (g_advance > 0) {
+		TasDeterminism::LockstepFrame();
 		Host_AccumulateTime_Hook.Disable();
 		Host_AccumulateTime(engine->GetIPT());
 		Host_AccumulateTime_Hook.Enable();
