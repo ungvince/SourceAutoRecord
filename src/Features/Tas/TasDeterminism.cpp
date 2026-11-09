@@ -58,6 +58,7 @@ bool TasDeterminism::Enabled() { return sar_tas_determinism.GetBool(); }
 
 void TasDeterminism::Unhook() {
 	UnhookClocks();
+	UnhookSound();
 }
 
 // The start sequence of a map, cm or save script. A `start now` script has none: it stays in Warmup.
@@ -78,6 +79,7 @@ static int g_sessionStartTick;
 bool TasDeterminism::PlayingTas() { return Enabled() && g_tasOn && tasPlayer->IsActive(); }
 bool TasDeterminism::InStartSequence() { return PlayingTas() && !tasPlayer->IsReady(); }
 bool TasDeterminism::ResetLoadPending() { return InStartSequence() && g_step == StartStep::Reset; }
+bool TasDeterminism::PrerunRestartPending() { return InStartSequence() && g_step == StartStep::Prerun; }
 bool TasDeterminism::InResetSession() { return g_inResetSession; }
 int TasDeterminism::SessionStartTick() { return g_sessionStartTick; }
 
@@ -181,6 +183,7 @@ bool TasDeterminism::OnSessionStart() {
 	ClocksSessionStart();
 	++g_processSessions;
 	bool reloading = startStep();
+	SoundSessionStart();
 	return reloading;
 }
 
@@ -188,6 +191,7 @@ ON_EVENT(SESSION_END) {
 	// With sar_autorecord 0 or 1 a running demo would continue into the next load of the start sequence. With -1,
 	// EngineDemoRecorder's own SESSION_END handler stops it.
 	if (TasDeterminism::InStartSequence() && sar_autorecord.GetInt() != -1) stopDemo();
+	TasDeterminism::SoundSessionEnd();
 }
 
 ON_EVENT_P(FRAME, 1) {
@@ -200,8 +204,11 @@ DECL_DETOUR_T(bool, ServerLevelInit, const char *map, const char *ents, const ch
 	if (InStartSequence()) {
 		stopDemo();
 		// ResetRandomState is last, so that nothing the other steps run can draw from the random stream after it is set.
+		// A warm-up load only gets ResetSoundState, a prerun restart nothing.
 		bool resetLoad = g_step == StartStep::Reset;
+		if (resetLoad) FlushSoundSystems();
 		if (resetLoad) DisableLocalBackdoor();
+		if (g_step != StartStep::Prerun) ResetSoundState();
 		if (resetLoad) ResetRandomState();
 	}
 	return ServerLevelInit(thisptr, map, ents, oldLevel, landmark, loadGame, background);

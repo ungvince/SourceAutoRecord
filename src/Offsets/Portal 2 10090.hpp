@@ -40,6 +40,7 @@ OFFSET_DEFAULT(GetMouseDelta, -1, 161)  // This method only exists on Linux
 OFFSET_DEFAULT(IsPaused, 86, 86)
 OFFSET_DEFAULT(DebugDrawPhysCollide, 75, 75)
 OFFSET_DEFAULT(Con_IsVisible, 11, 11)
+OFFSET_DEFAULT(SetAudioState, 61, 61)
 OFFSET_DEFAULT(GetLevelNameShort, 53, 53)
 OFFSET_DEFAULT(GetLightForPoint, 1, 1)
 OFFSET_DEFAULT(GetPlayerInfo, 8, 8)
@@ -294,6 +295,10 @@ OFFSET_DEFAULT(IsMultiplayer, 33, 34)
 
 // IClientRenderable
 OFFSET_DEFAULT(GetModel, 8, 8)
+
+// IAsyncWavDataCache
+OFFSET_DEFAULT(AsyncLoadCache, 2, 2)
+OFFSET_DEFAULT(IsDataLoadCompleted, 6, 6)
 
 // Others
 OFFSET_DEFAULT(tickcount, 95, 64)
@@ -582,6 +587,8 @@ OFFSET_DEFAULT(interfaceMgrOff, 2, -1)
 // sar_tas_determinism (Features/Tas/Determinism), Linux only so far
 // Engine
 SIGSCAN_DEFAULT(NET_SetTime, "", "83 EC 1C F2 0F 10 44 24 20 66 0F 28 C8 F2 0F 5C 0D ? ? ? ? F2 0F 11 05 ? ? ? ?") // NET_RunFrame's first call, with Plat_FloatTime()
+SIGSCAN_DEFAULT(wavedatacacheSig, "", "A1 ? ? ? ? 59 5B 8B 10 6A 00 50 FF 52 48") // a call of IAsyncWavDataCache vtable slot 18 through the global pointer
+OFFSET_DEFAULT(wavedatacacheOff, -1, 1)
 SIGSCAN_DEFAULT(GetSoundTime_soundtimeSig, "", "F2 0F 11 05 ? ? ? ? F3 0F 11 0D ? ? ? ? 99 66 0F 6E D0 66 0F 6E C2 66 0F 62 D0 F3 0F 7E 05 ? ? ? ? 66 0F D4 C2 66 0F D6 05 ? ? ? ?") // S_Update_Guts' first call -> GetSoundTime, its end
 OFFSET_DEFAULT(GetSoundTime_soundtimeFracOff, -1, 4)
 OFFSET_DEFAULT(GetSoundTime_soundtimeOff, -1, 45)
@@ -594,6 +601,11 @@ SIGSCAN_DEFAULT(DSP_firstMSTimeCallSig, "", "F3 0F 2C F1 E8 ? ? ? ? 01 F0 89 43 
 SIGSCAN_DEFAULT(DSP_lastMSTimeCallSig, "", "89 44 24 0C E8 ? ? ? ? 39 44 24 0C") // the cross-fade check, the copy inlined into its caller
 OFFSET_DEFAULT(DSP_MSTimeCallOff, -1, 4)
 SIGSCAN_DEFAULT(CSosOperatorRandom_Execute_FloatTime, "", "E8 ? ? ? ? DD 5C 24 08 E8") // CSosOperatorRandom::Execute: Plat_FloatTime() * 100 as the seed
+OFFSET_DEFAULT(CSosOperatorRandom_Execute_GetSoundOperatorSystemOff, -1, 10) // the next call: the sound operator system's getter
+OFFSET_DEFAULT(GetSoundOperatorSystem_createdOff, -1, 3)
+OFFSET_DEFAULT(GetSoundOperatorSystem_systemOff, -1, 12)
+OFFSET_DEFAULT(CSosOperatorSystem_entryMatchList, -1, 0xd8)
+SIGSCAN_DEFAULT(CSosEntryMatchList_Update_freeEntrySig, "", "BA 00 0A 00 00 31 C9 C6 00 0A 66 89 50 40 66 89 88 81 00 00 00 C7 80 84 00 00 00 FF FF FF FF C6 80 88 00 00 00 00 C7 80 8C 00 00 00 FF FF FF FF C6 80 90 00 00 00 00 C7 80 94 00 00 00 FF FF FF FF C7 80 98 00 00 00 00 01 00 00 C7 80 9C 00 00 00 00 00 80 BF C7 80 A0 00 00 00 00 00 80 BF") // CSosEntryMatchList::Update freeing an expired entry: the writes resetSoundEntry repeats
 SIGSCAN_DEFAULT(_Host_RunFrame_host_remainderSig, "", "F3 0F 10 05 ? ? ? ? F3 0F 58 05 ? ? ? ? F3 0F 11 05 ? ? ? ?") // _Host_RunFrame: host_remainder += host_frametime
 OFFSET_DEFAULT(_Host_RunFrame_host_remainderLoadOff, -1, 4)
 OFFSET_DEFAULT(_Host_RunFrame_host_remainderStoreOff, -1, 20)
@@ -603,6 +615,10 @@ OFFSET_DEFAULT(CL_SetupLocalNetworkBackDoor_g_pLocalNetworkBackdoorOff, -1, 4)
 SIGSCAN_DEFAULT(MaintainTurnActivity, "", "56 53 83 EC 14 A1 ? ? ? ? 8B 5C 24 20 F3 0F 10 40 0C F3 0F 10 8B DC 00 00 00 0F 2F C8") // CAI_BlendedMotor vtable slot 22
 OFFSET_DEFAULT(CAI_BlendedMotor_m_flNextTurnGesture, -1, 0xdc)
 OFFSET_DEFAULT(CGameMovement_m_flStuckCheckTime, -1, 0x670)
+SIGSCAN_DEFAULT(PhysFrame, "", "A1 ? ? ? ? 85 C0 0F 84 ? ? ? ? 80 3D ? ? ? ? 00 0F 85 ? ? ? ? 55 89 E5 57 56 53 83 EC 3C 0F 2F 05 ? ? ? ?") // "Reset physics clock" xref -> PhysFrame
+OFFSET_DEFAULT(PhysFrame_m_bPausedOff, -1, 15) // CPhysicsHook::m_bPaused; m_impactSoundTime is the float before it
+// SoundEmitterSystem
+SIGSCAN_DEFAULT(EnsureAvailableSlotsForGender, "", "55 57 56 53 83 EC 2C 8B 74 24 48 8B 5C 24 44 8B 7C 24 4C 85 F6 0F 8E ? ? ? ? C7 44 24 0C 00 00 00 00 31 D2 31 C9 31 C0") // "sound %s has no wave or rndwave key" xref -> GetParametersForSound -> the function that picks a wave -> its call
 // VPhysics
 SIGSCAN_DEFAULT(ivp_rand, "", "83 EC 04 66 0F EF C0 6B 05 ? ? ? ? 4B A3 ? ? ? ? 0F B7 C0 F3 0F 2A C0 F3 0F 59 05 ? ? ? ? F3 0F 11 04 24 D9 04 24 83 C4 04 C3") // seed = seed * 75; return (seed & 0xffff) / 65536.f, the only use of that float constant
 OFFSET_DEFAULT(ivp_rand_seedOff, -1, 9)
