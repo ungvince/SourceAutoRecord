@@ -37,6 +37,15 @@ static int **g_snd_p;
 static int *g_snd_vol;
 static MovieInfo_t *g_movieInfo;
 
+// A movie with no output format: the engine runs its movie-mode timing (the sound mixer paints host_frametime per frame)
+// without writing anything
+static void setFakeMovie(bool on) {
+	g_movieInfo->moviename[0] = on ? 'a' : 0;  // nonzero: the game thinks a movie is in progress
+	g_movieInfo->moviename[1] = 0;
+	g_movieInfo->movieframe = 0;
+	g_movieInfo->type = on ? 0 : MovieInfo_t::FMOVIE_TGA | MovieInfo_t::FMOVIE_WAV;
+}
+
 // The demoplayer tick this segment ends on (we'll stop recording at
 // this tick if sar_render_autostop is set)
 int Renderer::segmentEndTick = -1;
@@ -626,10 +635,7 @@ static void workerStartRender(AVCodecID videoCodec, AVCodecID audioCodec, int64_
 		g_render.blendSumBuf = (uint32_t *)calloc(3 * g_render.width * g_render.height, sizeof g_render.blendSumBuf[0]);
 	}
 
-	g_movieInfo->moviename[0] = 'a';  // Just something nonzero to make the game think there's a movie in progress
-	g_movieInfo->moviename[1] = 0;
-	g_movieInfo->movieframe = 0;
-	g_movieInfo->type = 0;  // Should stop anything actually being output
+	setFakeMovie(true);
 
 	g_render.isRendering.store(true);
 
@@ -691,9 +697,7 @@ static void workerFinishRender(bool error) {
 	g_render.audioBufLock.unlock();
 
 	// Reset all the Source movieinfo struct to its default values
-	g_movieInfo->moviename[0] = 0;
-	g_movieInfo->movieframe = 0;
-	g_movieInfo->type = MovieInfo_t::FMOVIE_TGA | MovieInfo_t::FMOVIE_WAV;
+	setFakeMovie(false);
 	g_movieInfo->jpeg_quality = 50;
 
 	Scheduler::OnMainThread([]() {
