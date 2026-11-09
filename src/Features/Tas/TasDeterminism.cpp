@@ -74,6 +74,8 @@ static int g_sessionStartTick;
 bool TasDeterminism::PlayingTas() { return Enabled() && g_tasOn && tasPlayer->IsActive(); }
 bool TasDeterminism::InStartSequence() { return PlayingTas() && !tasPlayer->IsReady(); }
 bool TasDeterminism::ResetLoadPending() { return InStartSequence() && g_step == StartStep::Reset; }
+bool TasDeterminism::InResetSession() { return g_inResetSession; }
+int TasDeterminism::SessionStartTick() { return g_sessionStartTick; }
 
 static bool canPlay(const TasPlaybackInfo &info) {
 	if (!TasDeterminism::Enabled()) return true;
@@ -171,6 +173,7 @@ static bool startStep() {
 bool TasDeterminism::OnSessionStart() {
 	g_inResetSession = ResetLoadPending();
 	g_sessionStartTick = server->gpGlobals ? server->gpGlobals->tickcount : -1;
+	StartStateSessionStart();
 	++g_processSessions;
 	bool reloading = startStep();
 	return reloading;
@@ -187,6 +190,10 @@ DECL_DETOUR_T(bool, ServerLevelInit, const char *map, const char *ents, const ch
 	using namespace TasDeterminism;
 	if (InStartSequence()) {
 		stopDemo();
+		// ResetRandomState is last, so that nothing the other steps run can draw from the random stream after it is set.
+		bool resetLoad = g_step == StartStep::Reset;
+		if (resetLoad) DisableLocalBackdoor();
+		if (resetLoad) ResetRandomState();
 	}
 	return ServerLevelInit(thisptr, map, ents, oldLevel, landmark, loadGame, background);
 }

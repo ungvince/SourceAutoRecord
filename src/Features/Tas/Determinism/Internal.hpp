@@ -22,4 +22,13 @@ namespace TasDeterminism {
 	// State of the start sequence (TasDeterminism.cpp)
 	bool PlayingTas();            // a TAS started with the cvar on is active, and the cvar has not been turned off since
 	bool ResetLoadPending();      // InStartSequence(), and the next or current load is the reset load
+	bool InResetSession();        // the last session start was the end of a reset load
+	int SessionStartTick();       // the server tick at the last session start
+
+	// Session start. These run after InResetSession() and SessionStartTick() are updated, and do not depend on each other.
+	void StartStateSessionStart();  // StartState.cpp
+
+	// Server level init. TasDeterminism.cpp decides which of these a load gets, and in which order.
+	void DisableLocalBackdoor();     // StartState.cpp
+	void ResetRandomState();         // StartState.cpp
 }  // namespace TasDeterminism

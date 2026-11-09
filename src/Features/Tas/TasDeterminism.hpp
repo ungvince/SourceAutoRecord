@@ -1,5 +1,6 @@
 #pragma once
 
+struct CUserCmd;
 struct TasPlaybackInfo;
 
 // sar_tas_determinism: every TAS plays like the first playback after launching the game (docs/determinism.md).
@@ -12,4 +13,9 @@ namespace TasDeterminism {
 	void OnStop();
 	bool OnSessionStart();   // true: another load runs before the script starts
 	bool InStartSequence();  // a TAS started with the cvar on is active and has not reached its first tick
+
+	// engine and server hooks
+	void OnSignonState(int state);
+	float HostTime(float real);   // the host time CheckStuck sees
+	void UsercmdSeed(CUserCmd *cmd);
 }  // namespace TasDeterminism

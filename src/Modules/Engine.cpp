@@ -20,6 +20,7 @@
 #include "Features/Session.hpp"
 #include "Features/Speedrun/SpeedrunTimer.hpp"
 #include "Features/Stitcher.hpp"
+#include "Features/Tas/TasDeterminism.hpp"
 #include "Features/Tas/TasPlayer.hpp"
 #include "Game.hpp"
 #include "Hook.hpp"
@@ -328,6 +329,7 @@ DETOUR(Engine::Disconnect, bool bShowMainMenu) {
 
 // CClientState::SetSignonState
 DETOUR(Engine::SetSignonState, int state, int count, void *unk) {
+	TasDeterminism::OnSignonState(state);
 	if (sar_tick_debug.GetInt() >= 2) {
 		int host, server, client;
 		engine->GetTicks(host, server, client);

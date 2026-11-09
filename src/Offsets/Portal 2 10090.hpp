@@ -579,6 +579,23 @@ SIGSCAN_DEFAULT(VScript_CompileScript, "55 8B EC 83 EC 0C 56 57 8B 7D 08 8B F1 8
 SIGSCAN_DEFAULT(interfaceMgrSig, "89 0D ? ? ? ? 85 C9 0F", "")
 OFFSET_DEFAULT(interfaceMgrOff, 2, -1)
 
+// sar_tas_determinism (Features/Tas/Determinism), Linux only so far
+// Engine
+SIGSCAN_DEFAULT(_Host_RunFrame_host_remainderSig, "", "F3 0F 10 05 ? ? ? ? F3 0F 58 05 ? ? ? ? F3 0F 11 05 ? ? ? ?") // _Host_RunFrame: host_remainder += host_frametime
+OFFSET_DEFAULT(_Host_RunFrame_host_remainderLoadOff, -1, 4)
+OFFSET_DEFAULT(_Host_RunFrame_host_remainderStoreOff, -1, 20)
+SIGSCAN_DEFAULT(CL_SetupLocalNetworkBackDoor, "", "83 EC 0C A1 ? ? ? ? 80 7C 24 10 00 74 11 85 C0 74 45") // called by _Host_RunFrame every frame
+OFFSET_DEFAULT(CL_SetupLocalNetworkBackDoor_g_pLocalNetworkBackdoorOff, -1, 4)
+// Server
+SIGSCAN_DEFAULT(MaintainTurnActivity, "", "56 53 83 EC 14 A1 ? ? ? ? 8B 5C 24 20 F3 0F 10 40 0C F3 0F 10 8B DC 00 00 00 0F 2F C8") // CAI_BlendedMotor vtable slot 22
+OFFSET_DEFAULT(CAI_BlendedMotor_m_flNextTurnGesture, -1, 0xdc)
+OFFSET_DEFAULT(CGameMovement_m_flStuckCheckTime, -1, 0x670)
+// VPhysics
+SIGSCAN_DEFAULT(ivp_rand, "", "83 EC 04 66 0F EF C0 6B 05 ? ? ? ? 4B A3 ? ? ? ? 0F B7 C0 F3 0F 2A C0 F3 0F 59 05 ? ? ? ? F3 0F 11 04 24 D9 04 24 83 C4 04 C3") // seed = seed * 75; return (seed & 0xffff) / 65536.f, the only use of that float constant
+OFFSET_DEFAULT(ivp_rand_seedOff, -1, 9)
+// VStdLib
+OFFSET_DEFAULT(RandomInt_s_pUniformStreamOff, -1, 9) // RandomInt (export): mov ebx, [s_pUniformStream]
+
 // clang-format on
 
 #ifndef _WIN32

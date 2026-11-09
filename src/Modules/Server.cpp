@@ -30,6 +30,7 @@
 #include "Features/Stats/Stats.hpp"
 #include "Features/StepCounter.hpp"
 #include "Features/Tas/TasController.hpp"
+#include "Features/Tas/TasDeterminism.hpp"
 #include "Features/Tas/TasPlayer.hpp"
 #include "Features/Tas/TasTools/StrafeTool.hpp"
 #include "Features/Timer/PauseTimer.hpp"
@@ -298,6 +299,8 @@ DETOUR(Server::PlayerRunCommand, CUserCmd *cmd, void *moveHelper) {
 	if (tasPlayer->IsActive() && reloadedFix->isPlacingTimePortal) {
 		cmd->buttons |= IN_ATTACK;
 	}
+
+	TasDeterminism::UsercmdSeed(cmd);  // sar_tas_determinism
 
 	g_playerRunCommandHook.Disable();
 	auto ret = Server::PlayerRunCommand(thisptr, cmd, moveHelper);
@@ -837,7 +840,7 @@ static void netResetCoopProgress(const void *data, size_t size) {
 }
 
 float hostTimeWrap() {
-	return engine->GetHostTime();
+	return TasDeterminism::HostTime(engine->GetHostTime());
 } 
 
 Memory::Patch *g_chatPatch;
