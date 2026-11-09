@@ -300,6 +300,12 @@ OFFSET_DEFAULT(GetModel, 8, 8)
 OFFSET_DEFAULT(AsyncLoadCache, 2, 2)
 OFFSET_DEFAULT(IsDataLoadCompleted, 6, 6)
 
+// IMatchFramework
+OFFSET_DEFAULT(GetEventsSubscription, -1, 10)
+
+// IMatchEventsSubscription
+OFFSET_DEFAULT(BroadcastEvent, 2, 2)
+
 // Others
 OFFSET_DEFAULT(tickcount, 95, 64)
 OFFSET_DEFAULT(interval_per_tick, 65, 58)

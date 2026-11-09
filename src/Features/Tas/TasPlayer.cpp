@@ -296,7 +296,7 @@ void TasPlayer::Stop(bool interrupted) {
 		SavePlayerInfoDebugs(1);
 
 		Event::Trigger<Event::TAS_END>({});
-	} else if (active && !ready) {
+	} else if ((active && !ready) || TasDeterminism::WaitingForProfile()) {
 		console->Print("TAS script has been prevented from playback.\n");
 	}
 
@@ -966,7 +966,7 @@ ON_EVENT(FRAME) {
 void TasPlayer::UpdateServer() {
 	TasProtocol::Status status;
 
-	status.active = active;
+	status.active = active || TasDeterminism::WaitingForProfile();
 	status.tas_path[0] = playbackInfo.slots[0].name;
 	status.tas_path[1] = playbackInfo.IsCoop() ? playbackInfo.slots[1].name : "";
 	status.playback_state =
@@ -1141,7 +1141,7 @@ CON_COMMAND(sar_tas_advance, "sar_tas_advance - advances TAS playback by one tic
 }
 
 CON_COMMAND(sar_tas_stop, "sar_tas_stop - stop TAS playing\n") {
-	if (!tasPlayer->IsActive()) {
+	if (!tasPlayer->IsActive() && !TasDeterminism::WaitingForProfile()) {
 		console->Print("TAS player is not active.\n");
 	} else {
 		tasPlayer->Stop(true);

@@ -24,6 +24,7 @@ namespace TasDeterminism {
 	bool PlayingTas();            // a TAS started with the cvar on is active, and the cvar has not been turned off since
 	bool ResetLoadPending();      // InStartSequence(), and the next or current load is the reset load
 	bool PrerunRestartPending();  // InStartSequence(), and the next or current load is a prerun restart
+	bool ResetLoadRequested();    // the reset load of the last activated TAS has been requested
 	bool InResetSession();        // the last session start was the end of a reset load
 	int SessionStartTick();       // the server tick at the last session start
 
@@ -41,8 +42,15 @@ namespace TasDeterminism {
 	void ResetRandomState();         // StartState.cpp
 
 	// Every frame
+	void SteamFrame();          // Steam.cpp
 	void SoundLockstepFrame();  // Clocks.cpp
+
+	// Steam.cpp
+	bool WaitForProfile(const TasPlaybackInfo &info);  // true: the TAS is activated again once Steam's profile data has loaded
+	void CancelProfileWait();
+	void ForgetWarmupEvents();
 
 	void UnhookClocks();
 	void UnhookSound();
+	void UnhookSteam();
 }  // namespace TasDeterminism

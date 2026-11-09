@@ -59,6 +59,7 @@ bool TasDeterminism::Enabled() { return sar_tas_determinism.GetBool(); }
 void TasDeterminism::Unhook() {
 	UnhookClocks();
 	UnhookSound();
+	UnhookSteam();
 }
 
 // The start sequence of a map, cm or save script. A `start now` script has none: it stays in Warmup.
@@ -80,6 +81,7 @@ bool TasDeterminism::PlayingTas() { return Enabled() && g_tasOn && tasPlayer->Is
 bool TasDeterminism::InStartSequence() { return PlayingTas() && !tasPlayer->IsReady(); }
 bool TasDeterminism::ResetLoadPending() { return InStartSequence() && g_step == StartStep::Reset; }
 bool TasDeterminism::PrerunRestartPending() { return InStartSequence() && g_step == StartStep::Prerun; }
+bool TasDeterminism::ResetLoadRequested() { return g_step != StartStep::Warmup; }
 bool TasDeterminism::InResetSession() { return g_inResetSession; }
 int TasDeterminism::SessionStartTick() { return g_sessionStartTick; }
 
@@ -100,9 +102,11 @@ static bool canPlay(const TasPlaybackInfo &info) {
 
 bool TasDeterminism::OnActivate(const TasPlaybackInfo &info) {
 	if (!canPlay(info)) return false;
+	if (WaitForProfile(info)) return false;
 	g_tasOn = Enabled();
 	g_step = StartStep::Warmup;
 	g_prerunDone = 0;
+	ForgetWarmupEvents();
 	if (g_tasOn && !(sar_loads_frametime.GetBool() && sar_loads_uncap.GetBool())) {
 		console->Print("sar_tas_determinism: turning on fast loads (sar_fast_load_preset full changes your loading settings)\n");
 		engine->ExecuteCommand("sar_fast_load_preset full");
@@ -112,6 +116,7 @@ bool TasDeterminism::OnActivate(const TasPlaybackInfo &info) {
 
 void TasDeterminism::OnStop() {
 	g_prerunWaitLeft = -1;
+	CancelProfileWait();
 }
 
 // A fresh launch records no demo during its first load, so none is recorded during the start sequence
@@ -195,6 +200,7 @@ ON_EVENT(SESSION_END) {
 }
 
 ON_EVENT_P(FRAME, 1) {
+	TasDeterminism::SteamFrame();
 	TasDeterminism::SoundLockstepFrame();
 }
 

@@ -10,7 +10,8 @@ namespace TasDeterminism {
 	void Unhook();   // restores the engine code and vtables patched at load
 
 	// TasPlayer
-	bool OnActivate(const TasPlaybackInfo &info);  // false: the script is refused
+	bool OnActivate(const TasPlaybackInfo &info);  // false: the script is refused, or is activated again later
+	bool WaitingForProfile();                      // an activation is waiting for Steam's profile data
 	void OnStop();
 	bool OnSessionStart();   // true: another load runs before the script starts
 	bool InStartSequence();  // a TAS started with the cvar on is active and has not reached its first tick
