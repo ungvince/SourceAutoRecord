@@ -1,6 +1,7 @@
 #include "RNGManip.hpp"
 
 #include "Event.hpp"
+#include "Features/Tas/TasDeterminism.hpp"
 #include "Features/Tas/TasPlayer.hpp"
 #include "Hook.hpp"
 #include "Modules/Console.hpp"
@@ -265,6 +266,10 @@ CON_COMMAND(sar_rng_save, "sar_rng_save [filename] - save RNG seed data to the s
 CON_COMMAND(sar_rng_load, "sar_rng_load [filename] - load RNG seed data on next session start. If filename isn't given, use last TAS script path\n") {
 	if (args.ArgC() < 1 || args.ArgC() > 2) {
 		console->Print(sar_rng_load.ThisPtr()->m_pszHelpString);
+		return;
+	}
+	if (TasDeterminism::Enabled()) {
+		console->Print("sar_rng_load replays another session's random seeds. Set sar_tas_determinism 0 to use it.\n");
 		return;
 	}
 

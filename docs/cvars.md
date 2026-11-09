@@ -613,6 +613,7 @@
 |sar_tas_check_disable|0|Globally disable the 'check' TAS tool.|
 |sar_tas_check_max_replays|15|Maximum replays for the 'check' TAS tool until it gives up.|
 |sar_tas_debug|0|Debug TAS information. 0 - none, 1 - basic, 2 - all.|
+|sar_tas_determinism|0|Deterministic TAS playback: every TAS plays like the first playback after launching the game, with SAR's fast loads (see docs/determinism.md).|
 |sar_tas_dump_player_info|0|Dump player info for each tick of TAS playback to a file.|
 |sar_tas_dump_usercmd|0|Dump TAS-generated usercmds to a file.|
 |sar_tas_interpolate|0|Preserve client interpolation in TAS playback.|

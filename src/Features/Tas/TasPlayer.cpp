@@ -1,6 +1,7 @@
 #include "TasPlayer.hpp"
 
 #include "Features/Session.hpp"
+#include "Features/Tas/TasDeterminism.hpp"
 #include "Features/Tas/TasParser.hpp"
 #include "Features/Tas/TasTool.hpp"
 #include "Features/Tas/TasProtocol.hpp"
@@ -159,6 +160,7 @@ void TasPlayer::Activate(TasPlaybackInfo info) {
 
 	//reset the controller before using it
 	Stop(true);
+	if (!TasDeterminism::OnActivate(info)) return;
 
 	for (int slot = 0; slot < 2; ++slot) {
 		for (TasTool *tool : TasTool::GetList(slot)) {
@@ -197,7 +199,8 @@ void TasPlayer::Activate(TasPlaybackInfo info) {
 	if (startInfo.type == ChangeLevel || startInfo.type == ChangeLevelCM) {
 		//check if map exists
 		if (fileSystem->MapExists(startInfo.param)) {
-			if (session->isRunning && engine->GetCurrentMapName() == startInfo.param) {
+			// sar_tas_determinism: always a full load, as after launching the game
+			if (session->isRunning && engine->GetCurrentMapName() == startInfo.param && !TasDeterminism::Enabled()) {
 				engine->ExecuteCommand("restart_level");
 			} else {
 				const char *start;
@@ -298,6 +301,7 @@ void TasPlayer::Stop(bool interrupted) {
 	active = false;
 	ready = false;
 	currentTick = 0;
+	TasDeterminism::OnStop();
 	tasControllers[0]->Disable();
 	tasControllers[1]->Disable();
 
@@ -887,6 +891,7 @@ void TasPlayer::DumpPlayerInfo(int slot, int tick, Vector pos, Vector eye_pos, Q
 }
 
 ON_EVENT_P(SESSION_START, 999) { // before rng manip hook
+	if (TasDeterminism::OnSessionStart()) return;  // the script starts after another load
 	if (tasPlayer->IsActive() && !tasPlayer->IsReady() && tasPlayer->numSessionsBeforeStart > 0) {
 		--tasPlayer->numSessionsBeforeStart;
 		auto rngManipFile = tasPlayer->playbackInfo.GetMainHeader().rngManipFile;
