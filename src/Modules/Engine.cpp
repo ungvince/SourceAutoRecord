@@ -795,7 +795,9 @@ void _Host_RunFrame_Render_Detour() {
 		uint64_t nframes = total_frames - init_frames;
 		g_cur_fps = (float)nframes / FPS_CHECK_WINDOW;
 	});
-	if (engine->IsForcingNoRendering()) {
+	// sar_tas_determinism: sar_tas_skipto renders every frame, because the calls below do not run the same client
+	// code as a rendered frame
+	if (engine->IsForcingNoRendering() && !TasDeterminism::Enabled()) {
 		// We need to do this or else the client doesn't update viewangles
 		// in response to portal teleportations (and it probably breaks some
 		// other stuff too). This would normally be done within
