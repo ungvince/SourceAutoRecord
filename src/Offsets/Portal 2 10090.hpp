@@ -281,6 +281,7 @@ OFFSET_DEFAULT(EnableGravity, 13, 14)
 OFFSET_DEFAULT(GetCollide, 74, 75)
 OFFSET_DEFAULT(Wake, 24, 25)
 OFFSET_DEFAULT(Sleep, 25, 26)
+OFFSET_DEFAULT(GetShadowController, -1, 72)
 
 // IVideoMode
 OFFSET_DEFAULT(GetModeWidth, 14, 15)
@@ -622,12 +623,18 @@ SIGSCAN_DEFAULT(MaintainTurnActivity, "", "56 53 83 EC 14 A1 ? ? ? ? 8B 5C 24 20
 OFFSET_DEFAULT(CAI_BlendedMotor_m_flNextTurnGesture, -1, 0xdc)
 OFFSET_DEFAULT(CGameMovement_m_flStuckCheckTime, -1, 0x670)
 SIGSCAN_DEFAULT(PhysFrame, "", "A1 ? ? ? ? 85 C0 0F 84 ? ? ? ? 80 3D ? ? ? ? 00 0F 85 ? ? ? ? 55 89 E5 57 56 53 83 EC 3C 0F 2F 05 ? ? ? ?") // "Reset physics clock" xref -> PhysFrame
+OFFSET_DEFAULT(PhysFrame_physenvOff, -1, 1)
 OFFSET_DEFAULT(PhysFrame_m_bPausedOff, -1, 15) // CPhysicsHook::m_bPaused; m_impactSoundTime is the float before it
 // SoundEmitterSystem
 SIGSCAN_DEFAULT(EnsureAvailableSlotsForGender, "", "55 57 56 53 83 EC 2C 8B 74 24 48 8B 5C 24 44 8B 7C 24 4C 85 F6 0F 8E ? ? ? ? C7 44 24 0C 00 00 00 00 31 D2 31 C9 31 C0") // "sound %s has no wave or rndwave key" xref -> GetParametersForSound -> the function that picks a wave -> its call
 // VPhysics
 SIGSCAN_DEFAULT(ivp_rand, "", "83 EC 04 66 0F EF C0 6B 05 ? ? ? ? 4B A3 ? ? ? ? 0F B7 C0 F3 0F 2A C0 F3 0F 59 05 ? ? ? ? F3 0F 11 04 24 D9 04 24 83 C4 04 C3") // seed = seed * 75; return (seed & 0xffff) / 65536.f, the only use of that float constant
 OFFSET_DEFAULT(ivp_rand_seedOff, -1, 9)
+SIGSCAN_DEFAULT(CPhysicsEnvironment_Simulate, "", "55 89 E5 57 56 53 83 EC 4C A1 ? ? ? ? 8B 7D 08 8B 40 30 85 C0 8B 47 04 0F 95 05 ? ? ? ? 85 C0 0F 84 ? ? ? ? 80 BF A5 00 00 00 00") // vtable index 35
+// CShadowController fields, from its IPhysicsShadowController base (GetShadowController)
+OFFSET_DEFAULT(CShadowController_m_secondsToArrival, -1, 0x08)
+OFFSET_DEFAULT(CShadowController_targetPositionW, -1, 0x28) // the 4th (w) components, which are never initialised
+OFFSET_DEFAULT(CShadowController_lastPositionW, -1, 0x48)
 // VStdLib
 OFFSET_DEFAULT(RandomInt_s_pUniformStreamOff, -1, 9) // RandomInt (export): mov ebx, [s_pUniformStream]
 

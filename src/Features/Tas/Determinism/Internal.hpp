@@ -40,6 +40,7 @@ namespace TasDeterminism {
 	void DisableLocalBackdoor();     // StartState.cpp
 	void ResetSoundState();          // Sound.cpp
 	void ResetRandomState();         // StartState.cpp
+	void ForgetShadowControllers();  // StartState.cpp
 
 	// Every frame
 	void SteamFrame();          // Steam.cpp

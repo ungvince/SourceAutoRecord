@@ -1,5 +1,6 @@
 #include "Features/Tas/Determinism/Internal.hpp"
 
+#include "Entity.hpp"
 #include "Event.hpp"
 #include "Features/Session.hpp"
 #include "Features/Tas/TasPlayer.hpp"
@@ -231,4 +232,44 @@ void TasDeterminism::StartStateSessionStart() {
 	g_newSession = true;
 	g_motorsSeen.clear();
 	g_firstConnectPending = false;
+}
+
+// Shadow controllers never initialise the 4th (w) component of two SIMD vectors, nor a bone follower's
+// seconds-to-arrival, and the physics step reads them. First playbacks read 0 there. The w components are zeroed
+// before every server physics step, a bone follower's time the first time its controller is seen in a level.
+static void **g_serverPhysenv;
+// By address. Accepted limitation: a controller allocated at the address of one freed earlier in the level is not reset.
+static std::set<void *> g_shadowsSeen;
+void TasDeterminism::ForgetShadowControllers() { g_shadowsSeen.clear(); }
+static void zeroShadows() {
+	for (int i = 0; i < Offsets::NUM_ENT_ENTRIES; ++i) {
+		void *ent = server->m_EntPtrArray[i].m_pEntity;
+		if (!ent) continue;
+		void *obj = SE(ent)->collision().GetVPhysicsObject();
+		if (!obj) continue;
+		auto shadow = Memory::VMT<char *(__rescall *)(void *)>(obj, Offsets::GetShadowController)(obj);
+		if (!shadow) continue;
+		*(uint32_t *)(shadow + Offsets::CShadowController_targetPositionW) = 0;
+		*(uint32_t *)(shadow + Offsets::CShadowController_lastPositionW) = 0;
+		if (g_shadowsSeen.insert(shadow).second) {
+			const char *cls = server->GetEntityClassName(ent);
+			if (cls && !strcmp(cls, "phys_bone_follower")) *(uint32_t *)(shadow + Offsets::CShadowController_m_secondsToArrival) = 0;
+		}
+	}
+}
+extern Hook g_CPhysicsEnvironment_Simulate_Hook;
+DECL_DETOUR_T(void, CPhysicsEnvironment_Simulate, float dt) {
+	if (Enabled() && thisptr == *g_serverPhysenv) zeroShadows();
+	g_CPhysicsEnvironment_Simulate_Hook.Disable();
+	CPhysicsEnvironment_Simulate(thisptr, dt);
+	g_CPhysicsEnvironment_Simulate_Hook.Enable();
+}
+Hook g_CPhysicsEnvironment_Simulate_Hook(CPhysicsEnvironment_Simulate_Hook);
+ON_INIT {
+	if (!Supported()) return;
+	auto PhysFrame = Memory::Scan(server->Name(), Offsets::PhysFrame);
+	CPhysicsEnvironment_Simulate = Memory::Scan<decltype(CPhysicsEnvironment_Simulate)>(MODULE("vphysics"), Offsets::CPhysicsEnvironment_Simulate);
+	if (!PhysFrame || !CPhysicsEnvironment_Simulate) return Missing("the physics environment");
+	g_serverPhysenv = Memory::Deref<void **>(PhysFrame + Offsets::PhysFrame_physenvOff);
+	g_CPhysicsEnvironment_Simulate_Hook.SetFunc(CPhysicsEnvironment_Simulate);
 }

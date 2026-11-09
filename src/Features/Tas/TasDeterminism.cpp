@@ -217,6 +217,7 @@ DECL_DETOUR_T(bool, ServerLevelInit, const char *map, const char *ents, const ch
 		if (g_step != StartStep::Prerun) ResetSoundState();
 		if (resetLoad) ResetRandomState();
 	}
+	ForgetShadowControllers();
 	return ServerLevelInit(thisptr, map, ents, oldLevel, landmark, loadGame, background);
 }
 ON_INIT {
