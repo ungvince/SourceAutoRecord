@@ -28,8 +28,14 @@ namespace TasDeterminism {
 
 	// Session start. These run after InResetSession() and SessionStartTick() are updated, and do not depend on each other.
 	void StartStateSessionStart();  // StartState.cpp
+	void ClocksSessionStart();      // Clocks.cpp
 
 	// Server level init. TasDeterminism.cpp decides which of these a load gets, and in which order.
 	void DisableLocalBackdoor();     // StartState.cpp
 	void ResetRandomState();         // StartState.cpp
+
+	// Every frame
+	void SoundLockstepFrame();  // Clocks.cpp
+
+	void UnhookClocks();
 }  // namespace TasDeterminism

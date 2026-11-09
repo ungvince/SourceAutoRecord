@@ -582,6 +582,18 @@ OFFSET_DEFAULT(interfaceMgrOff, 2, -1)
 // sar_tas_determinism (Features/Tas/Determinism), Linux only so far
 // Engine
 SIGSCAN_DEFAULT(NET_SetTime, "", "83 EC 1C F2 0F 10 44 24 20 66 0F 28 C8 F2 0F 5C 0D ? ? ? ? F2 0F 11 05 ? ? ? ?") // NET_RunFrame's first call, with Plat_FloatTime()
+SIGSCAN_DEFAULT(GetSoundTime_soundtimeSig, "", "F2 0F 11 05 ? ? ? ? F3 0F 11 0D ? ? ? ? 99 66 0F 6E D0 66 0F 6E C2 66 0F 62 D0 F3 0F 7E 05 ? ? ? ? 66 0F D4 C2 66 0F D6 05 ? ? ? ?") // S_Update_Guts' first call -> GetSoundTime, its end
+OFFSET_DEFAULT(GetSoundTime_soundtimeFracOff, -1, 4)
+OFFSET_DEFAULT(GetSoundTime_soundtimeOff, -1, 45)
+SIGSCAN_DEFAULT(S_Update_Guts_paintedtimeSig, "", "8B 15 ? ? ? ? 31 DB 66 0F 7E 45 E4 8B 06 8B 48 28 A1 ? ? ? ?") // after S_Update_Guts' call to GetSoundTime
+OFFSET_DEFAULT(S_Update_Guts_paintedtimeOff, -1, 19)
+SIGSCAN_DEFAULT(S_Update_mixaheadFilterSig, "", "A1 ? ? ? ? F3 0F 58 C5 F3 0F 11 05 ? ? ? ? F3 0F 58 40 2C") // S_Update: the mix-ahead frame-time filter, before the call to S_Update_Guts
+OFFSET_DEFAULT(S_Update_mixaheadFilterOff, -1, 13)
+// the DSP code's Plat_MSTime calls (preset expiry and cross-fades) are all between these two
+SIGSCAN_DEFAULT(DSP_firstMSTimeCallSig, "", "F3 0F 2C F1 E8 ? ? ? ? 01 F0 89 43 0C") // the modulated delay's init: [ebx+0xc] = Plat_MSTime() + a time in ms
+SIGSCAN_DEFAULT(DSP_lastMSTimeCallSig, "", "89 44 24 0C E8 ? ? ? ? 39 44 24 0C") // the cross-fade check, the copy inlined into its caller
+OFFSET_DEFAULT(DSP_MSTimeCallOff, -1, 4)
+SIGSCAN_DEFAULT(CSosOperatorRandom_Execute_FloatTime, "", "E8 ? ? ? ? DD 5C 24 08 E8") // CSosOperatorRandom::Execute: Plat_FloatTime() * 100 as the seed
 SIGSCAN_DEFAULT(_Host_RunFrame_host_remainderSig, "", "F3 0F 10 05 ? ? ? ? F3 0F 58 05 ? ? ? ? F3 0F 11 05 ? ? ? ?") // _Host_RunFrame: host_remainder += host_frametime
 OFFSET_DEFAULT(_Host_RunFrame_host_remainderLoadOff, -1, 4)
 OFFSET_DEFAULT(_Host_RunFrame_host_remainderStoreOff, -1, 20)

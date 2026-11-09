@@ -56,6 +56,10 @@ void TasDeterminism::Missing(const char *what) {
 
 bool TasDeterminism::Enabled() { return sar_tas_determinism.GetBool(); }
 
+void TasDeterminism::Unhook() {
+	UnhookClocks();
+}
+
 // The start sequence of a map, cm or save script. A `start now` script has none: it stays in Warmup.
 namespace {
 	enum class StartStep {
@@ -174,6 +178,7 @@ bool TasDeterminism::OnSessionStart() {
 	g_inResetSession = ResetLoadPending();
 	g_sessionStartTick = server->gpGlobals ? server->gpGlobals->tickcount : -1;
 	StartStateSessionStart();
+	ClocksSessionStart();
 	++g_processSessions;
 	bool reloading = startStep();
 	return reloading;
@@ -183,6 +188,10 @@ ON_EVENT(SESSION_END) {
 	// With sar_autorecord 0 or 1 a running demo would continue into the next load of the start sequence. With -1,
 	// EngineDemoRecorder's own SESSION_END handler stops it.
 	if (TasDeterminism::InStartSequence() && sar_autorecord.GetInt() != -1) stopDemo();
+}
+
+ON_EVENT_P(FRAME, 1) {
+	TasDeterminism::SoundLockstepFrame();
 }
 
 // CServerGameDLL::LevelInit, before the map's entities spawn

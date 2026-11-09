@@ -137,6 +137,8 @@ TasPlayer::TasPlayer()
 }
 
 TasPlayer::~TasPlayer() {
+	// here and not at SAR_UNLOAD: a failed load deletes the features without running the SAR_UNLOAD handlers
+	TasDeterminism::Unhook();
 	//framebulkQueue[0].clear();
 	//framebulkQueue[1].clear();
 }

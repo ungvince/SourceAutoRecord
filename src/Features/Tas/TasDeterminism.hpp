@@ -7,6 +7,7 @@ struct TasPlaybackInfo;
 // The cvar can only be 1 in Portal 2 on Linux. While it is 0, the functions below change nothing in the game.
 namespace TasDeterminism {
 	bool Enabled();  // sar_tas_determinism is 1
+	void Unhook();   // restores the engine code and vtables patched at load
 
 	// TasPlayer
 	bool OnActivate(const TasPlaybackInfo &info);  // false: the script is refused

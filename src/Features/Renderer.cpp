@@ -219,11 +219,13 @@ static uint16_t calcFrameWeight(double position) {
 
 static _CommandCallback startmovie_origCbk;
 static _CommandCallback endmovie_origCbk;
+static bool g_lockstepSound;
 static void startmovie_cbk(const CCommand &args) {
 	if (g_render.isRendering.load()) {
 		console->Print("Cannot startmovie while a SAR render is active! Stop the render with sar_render_finish.\n");
 		return;
 	}
+	Renderer::SetLockstepSound(false);  // startmovie sets up the movie state itself
 	startmovie_origCbk(args);
 }
 static void endmovie_cbk(const CCommand &args) {
@@ -1170,7 +1172,20 @@ void Renderer::Init(void **videomode) {
 	Command::Hook("endmovie", &endmovie_cbk, endmovie_origCbk);
 }
 
+// sar_tas_determinism: the sound mixer paints host_frametime per frame instead of following the audio device
+void Renderer::SetLockstepSound(bool on) {
+	if (!g_movieInfo || g_render.isRendering.load()) return;  // a SAR render runs the engine in movie mode already
+	if (on && !g_movieInfo->moviename[0]) {
+		setFakeMovie(true);
+		g_lockstepSound = true;
+	} else if (!on && g_lockstepSound) {
+		setFakeMovie(false);
+		g_lockstepSound = false;
+	}
+}
+
 void Renderer::Cleanup() {
+	SetLockstepSound(false);
 	g_RecordBufferHook.Disable();
 	Command::Unhook("startmovie", startmovie_origCbk);
 	Command::Unhook("endmovie", endmovie_origCbk);
