@@ -147,6 +147,9 @@ This file contains a detailed list of all features implemented by SourceAutoReco
   - Feeds inputs from parsed script to the virtual controller.
   - Has ability to pause, skip, slow down, speed up and tick-advance the script playback.
 
+- **Deterministic playback** (`sar_tas_determinism`):
+  - Makes every TAS start like the first playback after launching the game, so that a script plays the same way every time. Portal 2 on Linux only for now. See [determinism.md](determinism.md).
+
 - **Automation tools**:
   - A special set of tools that allows the script to autonomously react to in-game events where performed action can be automated:
     - **Auto Strafer** - finds the most optimal way to strafe on current tick, given user-defined parameters;
